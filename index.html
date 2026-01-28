@@ -37,14 +37,19 @@
 
         const App = () => {
             const [days, setDays] = useState(0);
-            const [totalFlowers, setTotalFlowers] = useState(0);
+            const [totalFlowers, setTotalFlowers] = useState(() => {
+                // Load harvested count from localStorage
+                const saved = localStorage.getItem('sunflower_harvested');
+                return saved ? parseInt(saved) : 0;
+            });
             const [showMessage, setShowMessage] = useState(false);
             const [encouragement, setEncouragement] = useState("");
             const [isNight, setIsNight] = useState(false);
-            const [showCongrats, setShowCongrats] = useState(false);
             const [startDate, setStartDate] = useState(() => {
-                // Initialize with a default or saved date
-                return new Date("2026-01-28");
+                // Try to load saved start date from localStorage
+                const savedDate = localStorage.getItem('sunflower_start_date');
+                if (savedDate) return new Date(savedDate);
+                return null; // Return null if first time
             });
             const [currentSeason, setCurrentSeason] = useState("winter");
 
@@ -58,8 +63,27 @@
                 "ค่อยเป็นค่อยไปนะ ทานตะวันยังรอคุณอยู่เสมอ"
             ];
 
+            // First time setup effect
+            useEffect(() => {
+                if (!startDate) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const promptDate = prompt("ยินดีต้อนรับสู่ Sunflowery! 🌻\nระบุวันที่คุณเริ่มปลูก (YYYY-MM-DD):", todayStr);
+                    const finalDate = promptDate ? new Date(promptDate) : new Date();
+                    const validDate = isNaN(finalDate) ? new Date() : finalDate;
+                    
+                    setStartDate(validDate);
+                    localStorage.setItem('sunflower_start_date', validDate.toISOString());
+                }
+            }, [startDate]);
+
+            // Save harvested count whenever it changes
+            useEffect(() => {
+                localStorage.setItem('sunflower_harvested', totalFlowers.toString());
+            }, [totalFlowers]);
+
             // Calculate days automatically based on startDate
             useEffect(() => {
+                if (!startDate) return;
                 const calculateDays = () => {
                     const today = new Date();
                     const diffTime = Math.max(0, today - startDate);
@@ -105,11 +129,13 @@
             };
 
             const handleDateChange = () => {
-                const newDateStr = prompt("ระบุวันที่เริ่มปลูก (รูปแบบ YYYY-MM-DD):", startDate.toISOString().split('T')[0]);
+                const currentStr = startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                const newDateStr = prompt("แก้ไขวันที่เริ่มปลูก (YYYY-MM-DD):", currentStr);
                 if (newDateStr) {
                     const newDate = new Date(newDateStr);
                     if (!isNaN(newDate)) {
                         setStartDate(newDate);
+                        localStorage.setItem('sunflower_start_date', newDate.toISOString());
                     } else {
                         alert("รูปแบบวันที่ไม่ถูกต้อง กรุณาลองใหม่");
                     }
@@ -144,6 +170,8 @@
                     </div>
                 );
             };
+
+            if (!startDate) return <div className={`min-h-screen w-full ${envStyles.bg}`} />;
 
             return (
                 <div className={`min-h-screen w-full transition-colors duration-1000 flex flex-col items-center justify-between overflow-hidden relative ${envStyles.bg} font-sans antialiased`}>
@@ -227,7 +255,7 @@
                                 <i data-lucide="droplets" style={{width: 20, height: 20}}></i>
                                 รดน้ำ
                             </button>
-                            <button onClick={() => {if(confirm("ต้องการรีเซ็ตวันเริ่มปลูกเป็นวันนี้ใช่ไหม?")) setStartDate(new Date())}} className="col-span-1 bg-white/50 text-[#78350f] p-4 rounded-[24px] border border-[#78350f]/10 active:scale-95 flex items-center justify-center">
+                            <button onClick={() => {if(confirm("ต้องการรีเซ็ตวันเริ่มปลูกเป็นวันนี้ใช่ไหม?")) { setStartDate(new Date()); localStorage.setItem('sunflower_start_date', new Date().toISOString()); }}} className="col-span-1 bg-white/50 text-[#78350f] p-4 rounded-[24px] border border-[#78350f]/10 active:scale-95 flex items-center justify-center">
                                 <i data-lucide="refresh-cw" style={{width: 20, height: 20}}></i>
                             </button>
                             <button onClick={() => setTotalFlowers(f => f + 1)} className="col-span-1 bg-white/50 text-[#0284c7] p-4 rounded-[24px] border border-[#0284c7]/10 active:scale-95 flex items-center justify-center">
