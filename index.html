@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunflowery Web App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(10px, -15px); } }
+        @keyframes pop-up { 0% { transform: scale(0.9) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulseStar { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.3); } }
+        .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+        .animate-float { animation: float 8s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 10s ease-in-out infinite 2s; }
+        .animate-pop-up { animation: pop-up 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards; }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { Moon, Cloud, Droplets, Calendar, Award, RefreshCw, Star, Clock, Edit2 } = lucide;
+
+        const App = () => {
+            const [days, setDays] = useState(0);
+            const [totalFlowers, setTotalFlowers] = useState(0);
+            const [showMessage, setShowMessage] = useState(false);
+            const [encouragement, setEncouragement] = useState("");
+            const [isNight, setIsNight] = useState(false);
+            const [showCongrats, setShowCongrats] = useState(false);
+            const [startDate, setStartDate] = useState(() => {
+                // Initialize with a default or saved date
+                return new Date("2026-01-28");
+            });
+            const [currentSeason, setCurrentSeason] = useState("winter");
+
+            const messages = [
+                "รอยยิ้มของคุณ สดใสกว่าแสงแดดอีกนะ",
+                "วันนี้คุณเก่งมากเลยนะ ทานตะวันภูมิใจในตัวคุณ!",
+                "รดน้ำแล้ว อย่าลืมดูแลใจตัวเองด้วยนะ",
+                "ทุกการเติบโตต้องใช้เวลา คุณทำดีที่สุดแล้ว",
+                "วันนี้เป็นวันที่ดี และพรุ่งนี้จะดียิ่งกว่า",
+                "คุณคือเหตุผลที่โลกนี้สดใสเหมือนทานตะวัน",
+                "ค่อยเป็นค่อยไปนะ ทานตะวันยังรอคุณอยู่เสมอ"
+            ];
+
+            // Calculate days automatically based on startDate
+            useEffect(() => {
+                const calculateDays = () => {
+                    const today = new Date();
+                    const diffTime = Math.max(0, today - startDate);
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    setDays(diffDays);
+                };
+                calculateDays();
+                const timer = setInterval(calculateDays, 60000);
+                return () => clearInterval(timer);
+            }, [startDate]);
+
+            useEffect(() => {
+                const updateEnv = () => {
+                    const now = new Date();
+                    const hour = now.getHours();
+                    const month = now.getMonth();
+                    setIsNight(hour < 6 || hour >= 18);
+                    if (month >= 2 && month <= 4) setCurrentSeason("spring");
+                    else if (month >= 5 && month <= 7) setCurrentSeason("summer");
+                    else if (month >= 8 && month <= 10) setCurrentSeason("autumn");
+                    else setCurrentSeason("winter");
+                };
+                updateEnv();
+                const timer = setInterval(updateEnv, 60000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const envStyles = useMemo(() => {
+                if (isNight) return { bg: "bg-[#0f172a]", ground: "from-[#064e3b] to-[#022c22]", horizon: "border-[#1e293b]" };
+                switch (currentSeason) {
+                    case "spring": return { bg: "bg-[#f0fdf4]", ground: "from-[#4ade80] to-[#16a34a]", horizon: "border-[#dcfce7]" };
+                    case "summer": return { bg: "bg-[#fffbeb]", ground: "from-[#fbbf24] to-[#d97706]", horizon: "border-[#fef3c7]" };
+                    case "autumn": return { bg: "bg-[#fff7ed]", ground: "from-[#fb923c] to-[#c2410c]", horizon: "border-[#ffedd5]" };
+                    case "winter": default: return { bg: "bg-[#f0f9ff]", ground: "from-[#38bdf8] to-[#0284c7]", horizon: "border-[#e0f2fe]" };
+                }
+            }, [isNight, currentSeason]);
+
+            const growthStage = Math.min(Math.floor((days % 365) / 20), 18);
+
+            const handleWatering = () => {
+                setEncouragement(messages[Math.floor(Math.random() * messages.length)]);
+                setShowMessage(true);
+            };
+
+            const handleDateChange = () => {
+                const newDateStr = prompt("ระบุวันที่เริ่มปลูก (รูปแบบ YYYY-MM-DD):", startDate.toISOString().split('T')[0]);
+                if (newDateStr) {
+                    const newDate = new Date(newDateStr);
+                    if (!isNaN(newDate)) {
+                        setStartDate(newDate);
+                    } else {
+                        alert("รูปแบบวันที่ไม่ถูกต้อง กรุณาลองใหม่");
+                    }
+                }
+            };
+
+            const Sunflower = ({ stage, isOld = false }) => {
+                const scale = isOld ? 0.45 : 0.4 + (stage * 0.035);
+                return (
+                    <div className={`relative transition-all duration-1000 ease-out ${isOld ? 'opacity-40 -translate-x-16' : 'z-10'}`} 
+                         style={{ transform: `scale(${scale})` }}>
+                        <div className="w-4 bg-[#22c55e] mx-auto rounded-full relative" 
+                             style={{ height: stage > 5 ? '220px' : '100px', transition: 'height 1s ease' }}>
+                            {stage > 3 && <div className="absolute -left-8 top-10 w-12 h-8 bg-[#16a34a] rounded-full -rotate-45" />}
+                            {stage > 7 && <div className="absolute -right-8 top-24 w-12 h-8 bg-[#16a34a] rounded-full rotate-45" />}
+                        </div>
+                        {stage >= 15 ? (
+                            <div className="absolute -top-20 -left-14 w-32 h-32">
+                                <div className="relative w-full h-full animate-spin-slow">
+                                    {[...Array(12)].map((_, i) => (
+                                        <div key={i} className="absolute w-10 h-20 bg-[#facc15] rounded-full left-11 -top-6 origin-bottom shadow-sm" 
+                                             style={{ transform: `rotate(${i * 30}deg)` }} />
+                                    ))}
+                                    <div className="absolute inset-5 bg-[#451a03] rounded-full border-4 border-[#78350f] overflow-hidden">
+                                        <div className="w-full h-full opacity-30 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:6px_6px]" />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : stage > 0 ? (
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#86efac] rounded-full border-4 border-[#22c55e] animate-pulse" />
+                        ) : null}
+                    </div>
+                );
+            };
+
+            return (
+                <div className={`min-h-screen w-full transition-colors duration-1000 flex flex-col items-center justify-between overflow-hidden relative ${envStyles.bg} font-sans antialiased`}>
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                        {isNight ? (
+                            <>
+                                <div className="absolute top-16 right-16 text-yellow-100/40 animate-pulse"><i data-lucide="moon" style={{width: 80, height: 80}}></i></div>
+                                {[...Array(40)].map((_, i) => (
+                                    <div key={i} className="absolute bg-white rounded-full" style={{ 
+                                        top: `${Math.random() * 60}%`, left: `${Math.random() * 100}%`, 
+                                        width: Math.random() * 2 + 1 + 'px', height: Math.random() * 2 + 1 + 'px',
+                                        opacity: Math.random(), animation: `pulseStar ${2 + Math.random() * 3}s infinite`
+                                    }} />
+                                ))}
+                            </>
+                        ) : (
+                            <>
+                                <div className="absolute top-[-40px] right-[-40px] w-80 h-80 bg-yellow-300 rounded-full blur-[80px] opacity-30 animate-pulse" />
+                                <div className="absolute top-12 right-12 w-40 h-40 bg-yellow-200 rounded-full blur-[20px] opacity-80" />
+                                <div className="absolute top-32 left-[10%] text-white/80 animate-float"><i data-lucide="cloud" style={{width: 100, height: 100}}></i></div>
+                                <div className="absolute top-64 left-[70%] text-white/50 animate-float-delayed"><i data-lucide="cloud" style={{width: 140, height: 140}}></i></div>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="z-20 mt-12 text-center">
+                        <h1 className="text-[#451a03] text-5xl font-black tracking-tighter mb-3">Sunflowery</h1>
+                        <button 
+                            onClick={handleDateChange}
+                            className="bg-white/40 hover:bg-white/60 backdrop-blur-xl px-5 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/60 shadow-sm transition-all group"
+                        >
+                            <i data-lucide="clock" style={{width: 14, height: 14, color: '#78350f'}}></i>
+                            <span className="text-[#78350f] text-[10px] font-black uppercase tracking-[0.2em]">
+                                Est. {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                            <i data-lucide="edit-2" className="opacity-0 group-hover:opacity-100 transition-opacity" style={{width: 10, height: 10, color: '#78350f'}}></i>
+                        </button>
+                    </div>
+
+                    <div className="relative flex-1 w-full flex items-end justify-center pb-32">
+                        <div className={`absolute bottom-32 w-full border-b-2 ${envStyles.horizon} opacity-50 transition-colors`} />
+                        <div className="absolute bottom-0 w-full h-32 flex flex-col">
+                            <div className={`w-full h-4 bg-gradient-to-r ${envStyles.ground} opacity-30`} />
+                            <div className={`w-full flex-1 bg-gradient-to-b ${envStyles.ground} opacity-10`} />
+                        </div>
+                        <div className="relative z-10 flex items-end justify-center translate-y-6">
+                            {totalFlowers > 0 && <Sunflower stage={18} isOld={true} />}
+                            <div className="flex flex-col items-center">
+                                <Sunflower stage={growthStage} />
+                                <div className="w-52 h-32 bg-[#78350f] rounded-b-[40px] rounded-t-lg shadow-2xl border-b-[10px] border-[#451a03] relative overflow-hidden">
+                                    <div className="absolute top-0 w-full h-6 bg-black/10" />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent" />
+                                </div>
+                                <div className="w-40 h-5 bg-black/5 blur-xl rounded-full -mt-2" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="z-20 mb-10 w-[92%] max-w-md bg-white/60 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)] border border-white/80">
+                        <div className="flex items-center justify-between mb-8 px-2">
+                            <div className="flex flex-col items-start">
+                                <span className="text-[#78350f]/40 text-[10px] font-black uppercase tracking-widest mb-1">Time Elapsed</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-[#451a03] text-4xl font-black">{Math.floor(days/365)}</span>
+                                    <span className="text-[#78350f]/40 text-sm font-bold">Years</span>
+                                    <span className="text-[#451a03] text-4xl font-black ml-2">{days % 365}</span>
+                                    <span className="text-[#78350f]/40 text-sm font-bold">Days</span>
+                                </div>
+                            </div>
+                            <div className="h-10 w-[1px] bg-[#78350f]/10" />
+                            <div className="flex flex-col items-end">
+                                <span className="text-[#78350f]/40 text-[10px] font-black uppercase tracking-widest mb-1">Harvested</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[#451a03] text-3xl font-black">{totalFlowers}</span>
+                                    <i data-lucide="star" style={{width: 18, height: 18, color: '#ea580c', fill: '#ea580c'}}></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
+                            <button onClick={handleWatering} className="col-span-2 bg-[#ea580c] text-white py-4 px-6 rounded-[24px] font-black text-md shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                                <i data-lucide="droplets" style={{width: 20, height: 20}}></i>
+                                รดน้ำ
+                            </button>
+                            <button onClick={() => {if(confirm("ต้องการรีเซ็ตวันเริ่มปลูกเป็นวันนี้ใช่ไหม?")) setStartDate(new Date())}} className="col-span-1 bg-white/50 text-[#78350f] p-4 rounded-[24px] border border-[#78350f]/10 active:scale-95 flex items-center justify-center">
+                                <i data-lucide="refresh-cw" style={{width: 20, height: 20}}></i>
+                            </button>
+                            <button onClick={() => setTotalFlowers(f => f + 1)} className="col-span-1 bg-white/50 text-[#0284c7] p-4 rounded-[24px] border border-[#0284c7]/10 active:scale-95 flex items-center justify-center">
+                                <i data-lucide="star" style={{width: 20, height: 20}}></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {showMessage && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#451a03]/20 backdrop-blur-xl animate-fade-in" onClick={() => setShowMessage(false)}>
+                            <div className="bg-white rounded-[50px] p-10 max-w-[340px] w-full shadow-2xl text-center animate-pop-up border-[6px] border-[#fef3c7]" onClick={e => e.stopPropagation()}>
+                                <p className="text-[#451a03] text-xl font-black leading-tight mb-10">{encouragement}</p>
+                                <button onClick={() => setShowMessage(false)} className="w-full bg-[#ea580c] text-white py-5 rounded-[24px] font-black text-lg shadow-lg active:scale-95">รับพลังบวก!</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+        // Initialize Lucide icons after React renders
+        setTimeout(() => lucide.createIcons(), 500);
+    </script>
+</body>
+</html>
