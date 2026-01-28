@@ -38,7 +38,6 @@
         const App = () => {
             const [days, setDays] = useState(0);
             const [totalFlowers, setTotalFlowers] = useState(() => {
-                // Load harvested count from localStorage
                 const saved = localStorage.getItem('sunflower_harvested');
                 return saved ? parseInt(saved) : 0;
             });
@@ -46,10 +45,9 @@
             const [encouragement, setEncouragement] = useState("");
             const [isNight, setIsNight] = useState(false);
             const [startDate, setStartDate] = useState(() => {
-                // Try to load saved start date from localStorage
                 const savedDate = localStorage.getItem('sunflower_start_date');
                 if (savedDate) return new Date(savedDate);
-                return null; // Return null if first time
+                return null;
             });
             const [currentSeason, setCurrentSeason] = useState("winter");
 
@@ -63,7 +61,6 @@
                 "ค่อยเป็นค่อยไปนะ ทานตะวันยังรอคุณอยู่เสมอ"
             ];
 
-            // First time setup effect
             useEffect(() => {
                 if (!startDate) {
                     const todayStr = new Date().toISOString().split('T')[0];
@@ -76,12 +73,10 @@
                 }
             }, [startDate]);
 
-            // Save harvested count whenever it changes
             useEffect(() => {
                 localStorage.setItem('sunflower_harvested', totalFlowers.toString());
             }, [totalFlowers]);
 
-            // Calculate days automatically based on startDate
             useEffect(() => {
                 if (!startDate) return;
                 const calculateDays = () => {
@@ -198,7 +193,8 @@
                     </div>
 
                     <div className="z-20 mt-12 text-center">
-                        <h1 className="text-[#451a03] text-5xl font-black tracking-[0.25em] mb-3 ml-[0.25em]">Sunflowery</h1>
+                        {/* ปรับแก้ช่องไฟที่นี่: tracking-[0.1em] เพื่อความพอดี */}
+                        <h1 className="text-[#451a03] text-5xl font-black tracking-[0.1em] mb-3 ml-[0.1em]">Sunflowery</h1>
                         <button 
                             onClick={handleDateChange}
                             className="bg-white/40 hover:bg-white/60 backdrop-blur-xl px-5 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/60 shadow-sm transition-all group"
@@ -279,7 +275,6 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
 
-        // Initialize Lucide icons after React renders
         setTimeout(() => lucide.createIcons(), 500);
     </script>
 </body>
